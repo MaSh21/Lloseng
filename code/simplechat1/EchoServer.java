@@ -51,6 +51,25 @@ public class EchoServer extends AbstractServer
     System.out.println("Message received: " + msg + " from " + client);
     this.sendToAllClients(msg);
   }
+  
+  /**
+   * This method is called each time a new client connection is
+   * accepted.
+   * @param client the connection connected to the client.
+   */
+  
+  public void clientConnected(ConnectionToClient client) {
+		System.out.println
+      ("The client " + client + " has connected."); 
+	}
+	
+	/**
+   * This method is called each time a client disconnects.
+   * @param client the connection connected to the client.
+   */
+ synchronized public void clientDisconnected(ConnectionToClient client) {
+		System.out.println("The client " + client +" has disconnected.");
+	}
     
   /**
    * This method overrides the one in the superclass.  Called
