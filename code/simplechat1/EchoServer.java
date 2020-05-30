@@ -22,6 +22,7 @@ public class EchoServer extends AbstractServer
 	// Instance variables ******************************************
 	
 	ChatIF serverUI;
+	boolean isClosed=false;
   
   //Constructors ****************************************************
   
@@ -47,9 +48,51 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the end-user.
    */
   public void handleMessageFromServerUI (String message)throws IOException {
-	serverUI.display("YOU TYPED: " + message);
-	String serverMsg = "SERVER MSG> " + message;
-	this.sendToAllClients(serverMsg);	  
+	  if (message.charAt(0)=='#'){
+		String[] msg = message.split(" ");
+		switch(msg[0]){
+			case "#quit":
+				serverClosed();
+				isClosed=true;
+				break;
+			case "#stop":
+				stopListening();
+				break;
+			case "#close":
+				close();
+				isClosed=true;
+				break;
+			case "#setport":
+				if (isClosed){
+					try{
+						setPort(Integer.parseInt(msg[1]));
+					} catch(IndexOutOfBoundsException | NumberFormatException e){
+						System.out.println("No port number was provided.");
+					}
+				}
+				else {
+					System.out.println("Can't set a port number when open.");
+				}
+				break;
+			case "#start":
+				if (!isListening())
+					listen();
+				else {
+					System.out.println("The server is already listening to clients.");
+				}
+				break;
+			case "#getport":
+				System.out.println("The port number is "+getPort());
+				break;
+			default:
+				System.out.println ("Unknown command");
+		}
+	} 
+	else{ 
+		serverUI.display("YOU TYPED: " + message);
+		String serverMsg = "SERVER MSG> " + message;
+		this.sendToAllClients(serverMsg);	  
+	  }
   }
   
   /**
@@ -102,6 +145,11 @@ public class EchoServer extends AbstractServer
   {
     System.out.println
       ("Server has stopped listening for connections.");
+  }
+  
+  public void serverClosed() {
+	  System.out.println("The server is being closed.");
+	  System.exit(0);
   }
   
 }
