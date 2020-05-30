@@ -101,12 +101,36 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
-  {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
-  }
+  public void handleMessageFromClient(Object msg, ConnectionToClient client){
+		String[]message = msg.toString().split(" ");
+		//System.out.println(message[0]);
+		if (!message[0].equals("#login"))
+		{
+			System.out.println("Message received: " + msg + " from " + client.getInfo("#login"));
+			this.sendToAllClients(client.getInfo("#login")+": "+ msg);
+		}
+		if (message[0].equals("#login"))
+		{
+			if (client.getInfo("#login")!=null){
+				if(message[1]!=null)
+				{
+				try{client.sendToClient("You are already logged in under the name "+client.getInfo("#login"));}
+				catch (IOException e){}
+				}	
+			}	
+			else if (message[1]==null)
+			{
+				try{client.sendToClient("You must provide a login ID.");}
+				catch (IOException e){}
+				try{client.close();}
+				catch(IOException e){}
+			}
+			else
+			{
+				client.setInfo("#login", message[1]);
+			}		
+		}	
+	}
   
   /**
    * This method is called each time a new client connection is

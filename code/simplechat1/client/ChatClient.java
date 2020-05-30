@@ -47,6 +47,7 @@ public class ChatClient extends AbstractClient
     this.clientUI = clientUI;
 	this.loginID = loginID;
     openConnection();
+	sendToServer("#login "+loginID);
   }
 
   
@@ -132,10 +133,19 @@ public class ChatClient extends AbstractClient
 				}
 				break;
 			case "#login":
-				if (!isConnected())
-					openConnection();
-				else {
-					System.out.println("Already connected.");
+				try 
+				{
+					if (msg[1]!=null)
+						sendToServer(message);
+				}
+				catch(IndexOutOfBoundsException e)
+				{
+					if (!isConnected())
+						openConnection();
+					else 
+					{
+						System.out.println("Already connected.");
+					}
 				}
 				break;
 			case "#gethost":
@@ -144,8 +154,6 @@ public class ChatClient extends AbstractClient
 			case "#getport":
 				System.out.println("The port number is "+getPort());
 				break;
-			default:
-				System.out.println ("Unknown command");
 		}
 	} 
 	else{ 
