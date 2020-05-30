@@ -53,7 +53,7 @@ public class ChatClient extends AbstractClient
 	 */
 	
 	public void connectionClosed() {
-		System.out.println("The server has shut down.");
+		System.out.println("The connection has been closed.");
 		System.exit(0);
 	} 
 	
@@ -85,18 +85,78 @@ public class ChatClient extends AbstractClient
    *
    * @param message The message from the UI.    
    */
-  public void handleMessageFromClientUI(String message)
-  {
-    try
-    {
-      sendToServer(message);
-    }
-    catch(IOException e)
-    {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
-      quit();
-    }
+  public void handleMessageFromClientUI(String message)throws IOException{
+	  if (message.charAt(0)=='#'){
+		String[] msg = message.split(" ");
+		switch(msg[0]){
+			case "#quit":
+				quit();
+				break;
+			case "#logoff":
+				if (isConnected()){
+					try{
+						closeConnection();
+					} catch(IOException e){
+						System.out.println("You are logging off the chat");
+					}
+				}
+				else {
+					System.out.println("You are not connected");
+				}
+				break;
+			case "#sethost":
+				if (!isConnected()){
+					try{
+						setHost(msg[1]);
+					} catch(IndexOutOfBoundsException e){
+						System.out.println("No host name was provided.");
+					}
+				}
+				else {
+					System.out.println("Can't set a host name when connected.");
+				}
+				break;
+			case "#setport":
+				if (!isConnected()){
+					try{
+						setPort(Integer.parseInt(msg[1]));
+					} catch(IndexOutOfBoundsException | NumberFormatException e){
+						System.out.println("No port number was provided.");
+					}
+				}
+				else {
+					System.out.println("Can't set a port number when connected.");
+				}
+				break;
+			case "#login":
+				if (!isConnected())
+					openConnection();
+				else {
+					System.out.println("Already connected.");
+				}
+				break;
+			case "#gethost":
+				System.out.println("The host name is "+getHost());
+				break;
+			case "#getport":
+				System.out.println("The port number is "+getPort());
+				break;
+			default:
+				System.out.println ("Unknown command");
+		}
+	} 
+	else{ 
+		try
+		{
+		  sendToServer(message);
+		}
+		catch(IOException e)
+		{
+		  clientUI.display
+			("Could not send message to server.  Terminating client.");
+		  quit();
+		}
+	  }
   }
   
   /**
