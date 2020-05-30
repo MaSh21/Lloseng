@@ -3,6 +3,7 @@
 // license found at www.lloseng.com 
 
 import java.io.*;
+import common.*;
 import ocsf.server.*;
 
 /**
@@ -17,12 +18,10 @@ import ocsf.server.*;
  */
 public class EchoServer extends AbstractServer 
 {
-  //Class variables *************************************************
-  
-  /**
-   * The default port to listen on.
-   */
-  final public static int DEFAULT_PORT = 5555;
+	
+	// Instance variables ******************************************
+	
+	ChatIF serverUI;
   
   //Constructors ****************************************************
   
@@ -31,13 +30,27 @@ public class EchoServer extends AbstractServer
    *
    * @param port The port number to connect on.
    */
-  public EchoServer(int port) 
+  public EchoServer(int port, ChatIF serverUI) throws IOException
   {
     super(port);
+	this.serverUI = serverUI;
+	listen();
   }
+
 
   
   //Instance methods ************************************************
+  
+  /**
+   * This method handles any messages received from the end-user of the server.
+   *
+   * @param msg The message received from the end-user.
+   */
+  public void handleMessageFromServerUI (String message)throws IOException {
+	serverUI.display("YOU TYPED: " + message);
+	String serverMsg = "SERVER MSG> " + message;
+	this.sendToAllClients(serverMsg);	  
+  }
   
   /**
    * This method handles any messages received from the client.
@@ -91,38 +104,5 @@ public class EchoServer extends AbstractServer
       ("Server has stopped listening for connections.");
   }
   
-  //Class methods ***************************************************
-  
-  /**
-   * This method is responsible for the creation of 
-   * the server instance (there is no UI in this phase).
-   *
-   * @param args[0] The port number to listen on.  Defaults to 5555 
-   *          if no argument is entered.
-   */
-  public static void main(String[] args) 
-  {
-    int port = 0; //Port to listen on
-
-    try
-    {
-      port = Integer.parseInt(args[0]); //Get port from command line
-    }
-    catch(Throwable t)
-    {
-      port = DEFAULT_PORT; //Set port to 5555
-    }
-	
-    EchoServer sv = new EchoServer(port);
-    
-    try 
-    {
-      sv.listen(); //Start listening for connections
-    } 
-    catch (Exception ex) 
-    {
-      System.out.println("ERROR - Could not listen for clients!");
-    }
-  }
 }
 //End of EchoServer class
