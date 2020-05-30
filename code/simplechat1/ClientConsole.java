@@ -41,11 +41,11 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String loginID, String host, int port) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
+      client= new ChatClient(loginID, host, port, this);
     } 
     catch(IOException exception) 
     {
@@ -104,32 +104,42 @@ public class ClientConsole implements ChatIF
    */
   public static void main(String[] args) 
   {
+	String loginID = "";
     String host = "";
     int port = 0;  //The port number
 	
-	try										// the first input is the port number
+	try
+	{
+		loginID = args[0];
+	} catch(ArrayIndexOutOfBoundsException e)
     {
-      port = Integer.parseInt(args[0]);
+      System.out.println("ERROR - No login ID specified. Connection terminated.");
+	  System.exit(1);
     }
-	catch(ArrayIndexOutOfBoundsException e)	// there is no first input
+	
+	try										// the second (optional) input is the port number
+    {
+      port = Integer.parseInt(args[1]);
+    }
+	catch(ArrayIndexOutOfBoundsException e)	// there is no second input
     {
       port = DEFAULT_PORT;
 	  host = "localhost";
     }
-	catch(NumberFormatException e)			// the first input is the host name
+	catch(NumberFormatException e)			// the second (optional) input is the host name
     {
-		host = args[0];
-		try									// the second input is the port number
+		host = args[1];
+		try									// the third (optional) input is the port number
 		{
-		port = Integer.parseInt(args[1]);	
+		port = Integer.parseInt(args[2]);	
 		}
-		catch(ArrayIndexOutOfBoundsException f)	// there is no second input
+		catch(ArrayIndexOutOfBoundsException f)	// there is no third input
 		{
 		port = DEFAULT_PORT;
 		}
     }
 	
-    ClientConsole chat= new ClientConsole(host, port);
+    ClientConsole chat= new ClientConsole(loginID, host, port);
     chat.accept();  //Wait for console data
   }
 }
