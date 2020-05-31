@@ -52,20 +52,25 @@ public class EchoServer extends AbstractServer
 		String[] msg = message.split(" ");
 		switch(msg[0]){
 			case "#quit":
-				serverClosed();
-				isClosed=true;
+				System.exit(0);
 				break;
 			case "#stop":
 				stopListening();
+				this.sendToAllClients("WARNING - Server has stopped listening for connections.");
 				break;
 			case "#close":
-				close();
+				try{
+					this.sendToAllClients("SERVER SHUTTING DOWN! DISCONNECTING!");
+					close();
+					}
+				catch(IOException e){}
 				isClosed=true;
 				break;
 			case "#setport":
 				if (isClosed){
 					try{
 						setPort(Integer.parseInt(msg[1]));
+						System.out.println("Port set to: "+msg[1]+".");
 					} catch(IndexOutOfBoundsException | NumberFormatException e){
 						System.out.println("No port number was provided.");
 					}
@@ -103,12 +108,7 @@ public class EchoServer extends AbstractServer
    */
   public void handleMessageFromClient(Object msg, ConnectionToClient client){
 		String[]message = msg.toString().split(" ");
-		//System.out.println(message[0]);
-		if (!message[0].equals("#login"))
-		{
-			System.out.println("Message received: " + msg + " from " + client.getInfo("#login"));
-			this.sendToAllClients(client.getInfo("#login")+": "+ msg);
-		}
+		System.out.println("Message received: " + msg + " from " + client.getInfo("#login"));
 		if (message[0].equals("#login"))
 		{
 			if (client.getInfo("#login")!=null){
@@ -128,8 +128,19 @@ public class EchoServer extends AbstractServer
 			else
 			{
 				client.setInfo("#login", message[1]);
+				String announcement = client.getInfo("#login")+" has logged on.";
+				System.out.println("------------------------------");
+				System.out.println(announcement);
+				System.out.println("------------------------------");
+				this.sendToAllClients(announcement);
 			}		
 		}	
+		else if (message[0].equals("#quit") || message[0].equals("#logoff")) 
+			clientDisconnected(client);
+		else
+		{
+			this.sendToAllClients(client.getInfo("#login")+": "+ msg);
+		}
 	}
   
   /**
@@ -139,8 +150,7 @@ public class EchoServer extends AbstractServer
    */
   
   public void clientConnected(ConnectionToClient client) {
-		System.out.println
-      ("The client " + client + " has connected."); 
+		System.out.println("A new client is attempting to connect to the server.");		
 	}
 	
 	/**
@@ -148,7 +158,10 @@ public class EchoServer extends AbstractServer
    * @param client the connection connected to the client.
    */
  synchronized public void clientDisconnected(ConnectionToClient client) {
-		System.out.println("The client " + client +" has disconnected.");
+		this.sendToAllClients(client.getInfo("#login") +" has disconnected.");
+		System.out.println("------------------------------");
+		System.out.println(client.getInfo("#login") +" has disconnected.");
+		System.out.println("------------------------------");
 	}
     
   /**
@@ -172,8 +185,7 @@ public class EchoServer extends AbstractServer
   }
   
   public void serverClosed() {
-	  System.out.println("The server is being closed.");
-	  System.exit(0);
+	  isClosed=true;
   }
   
 }

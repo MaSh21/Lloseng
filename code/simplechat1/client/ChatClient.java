@@ -40,14 +40,18 @@ public class ChatClient extends AbstractClient
    * @param clientUI The interface type variable.
    */
   
-  public ChatClient(String loginID, String host, int port, ChatIF clientUI) 
-    throws IOException 
-  {
-    super(host, port); //Call the superclass constructor
-    this.clientUI = clientUI;
-	this.loginID = loginID;
-    openConnection();
-	sendToServer("#login "+loginID);
+  public ChatClient(String loginID, String host, int port, ChatIF clientUI){
+		super(host, port); //Call the superclass constructor
+		this.clientUI = clientUI;
+		this.loginID = loginID;
+		try
+		{
+			openConnection();
+			sendToServer("#login "+loginID);
+		} 
+			catch (IOException e){
+			System.out.println("Cannot open connection. Awaiting command.");
+		}
   }
 
   
@@ -57,8 +61,7 @@ public class ChatClient extends AbstractClient
 	 */
 	
 	public void connectionClosed() {
-		System.out.println("The connection has been closed.");
-		System.exit(0);
+		System.out.println("Connection closed.");
 	} 
 	
 	/**
@@ -70,8 +73,7 @@ public class ChatClient extends AbstractClient
 	 */
 	
 	public void connectionException(Exception exception) {
-		System.out.println("ERROR: "+ exception+". The server has shut down.");
-		System.exit(0);
+		System.out.println("Abnormal termination of connection.");
 	} 
 	
   /**
@@ -94,15 +96,26 @@ public class ChatClient extends AbstractClient
 		String[] msg = message.split(" ");
 		switch(msg[0]){
 			case "#quit":
+				try
+				{
+				  sendToServer(message);
+				}
+				catch(IOException e){}
 				quit();
 				break;
 			case "#logoff":
+				try
+				{
+				  sendToServer(message);
+				}
+				catch(IOException e){
+					System.out.println("Could not send message to server.  Terminating client.");
+					quit();
+				}
 				if (isConnected()){
 					try{
 						closeConnection();
-					} catch(IOException e){
-						System.out.println("You are logging off the chat");
-					}
+					} catch(IOException e){}
 				}
 				else {
 					System.out.println("You are not connected");
@@ -112,6 +125,7 @@ public class ChatClient extends AbstractClient
 				if (!isConnected()){
 					try{
 						setHost(msg[1]);
+						System.out.println("Host set to: "+getHost()+".");
 					} catch(IndexOutOfBoundsException e){
 						System.out.println("No host name was provided.");
 					}
@@ -124,6 +138,7 @@ public class ChatClient extends AbstractClient
 				if (!isConnected()){
 					try{
 						setPort(Integer.parseInt(msg[1]));
+						System.out.println("Port set to: "+getPort()+".");
 					} catch(IndexOutOfBoundsException | NumberFormatException e){
 						System.out.println("No port number was provided.");
 					}
@@ -133,19 +148,18 @@ public class ChatClient extends AbstractClient
 				}
 				break;
 			case "#login":
-				try 
-				{
-					if (msg[1]!=null)
-						sendToServer(message);
-				}
-				catch(IndexOutOfBoundsException e)
-				{
-					if (!isConnected())
-						openConnection();
-					else 
+				if (!isConnected()){
+					try
 					{
-						System.out.println("Already connected.");
+					openConnection();
+					sendToServer("#login "+loginID);
+					} catch (IOException e){
+					System.out.println("Cannot open connection. Awaiting command.");
 					}
+				}
+				else 
+				{
+					System.out.println("Already connected.");
 				}
 				break;
 			case "#gethost":
@@ -161,11 +175,9 @@ public class ChatClient extends AbstractClient
 		{
 		  sendToServer(message);
 		}
-		catch(IOException e)
-		{
-		  clientUI.display
-			("Could not send message to server.  Terminating client.");
-		  quit();
+		catch(IOException e){
+			System.out.println("Could not send message to server.  Terminating client.");
+			quit();
 		}
 	  }
   }
@@ -177,7 +189,7 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-      closeConnection();
+      closeConnection();	  
     }
     catch(IOException e) {}
     System.exit(0);
